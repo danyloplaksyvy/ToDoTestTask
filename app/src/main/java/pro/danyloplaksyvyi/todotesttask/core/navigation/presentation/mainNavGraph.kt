@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import pro.danyloplaksyvyi.todotesttask.core.navigation.data.model.Graph
 import pro.danyloplaksyvyi.todotesttask.core.navigation.data.model.screen.MainScreens
-import pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.TaskListScreen
+import pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.view.TaskListScreen
 
 fun NavGraphBuilder.mainNavGraph(navController: NavController) {
     navigation(route = Graph.MAIN, startDestination = MainScreens.TaskList.route) {

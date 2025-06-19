@@ -1,7 +1,7 @@
 package pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.model.User
 
 
 interface AuthRepository {

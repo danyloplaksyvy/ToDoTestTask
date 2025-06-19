@@ -1,4 +1,4 @@
-package pro.danyloplaksyvyi.todotesttask.features.auth.data.model
+package pro.danyloplaksyvyi.todotesttask.features.auth.presentation.viewmodel
 
 data class SignUpFormState(
     val fullName: String = "",

@@ -1,6 +1,6 @@
 package pro.danyloplaksyvyi.todotesttask.features.auth.domain.usecase
 
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.model.User
 import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.AuthRepository
 
 class SignInUseCase(
