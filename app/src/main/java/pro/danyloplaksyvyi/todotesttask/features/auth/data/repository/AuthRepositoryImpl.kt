@@ -1,8 +1,9 @@
-package pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository
+package pro.danyloplaksyvyi.todotesttask.features.auth.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.tasks.await
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.repository.AuthRepository
+import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.AuthRepository
 
 class AuthRepositoryImpl : AuthRepository {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -46,5 +47,3 @@ class AuthRepositoryImpl : AuthRepository {
         return firebaseUser?.let { User(uid = it.uid, email = it.email ?: "") }
     }
 }
-
-data class User(val uid: String, val email: String)

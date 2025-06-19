@@ -21,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +28,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,25 +46,28 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import pro.danyloplaksyvyi.todotesttask.features.auth.presentation.view.components.ConnectWithGoogleButton
+import org.koin.androidx.compose.koinViewModel
+import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.AuthState
+import pro.danyloplaksyvyi.todotesttask.features.auth.presentation.viewmodel.AuthViewModel
 
 @Composable
 fun SignInScreen(
     onSignInSuccess: () -> Unit,
     onSignUpNavigate: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
+    val authViewModel: AuthViewModel = koinViewModel()
+    val formState by authViewModel.signInFormState.collectAsState()
+    val authState by authViewModel.authState.collectAsState()
 
+    var passwordVisible by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
-    // Email validation
-    val isEmailValid = email.contains("@") && email.contains(".")
-    val isPasswordValid = password.length >= 6
-    val isFormValid = isEmailValid && isPasswordValid
+    // Handle navigation on successful sign-up
+    LaunchedEffect(authState) {
+        if (authState is AuthState.SignedIn) {
+            onSignInSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -89,10 +93,9 @@ fun SignInScreen(
 
         // Email Field
         OutlinedTextField(
-            value = email,
+            value = formState.email,
             onValueChange = {
-                email = it
-                errorMessage = ""
+                authViewModel.updateSignInEmail(it)
             },
             label = { Text("Email") },
             leadingIcon = {
@@ -108,10 +111,10 @@ fun SignInScreen(
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) }
             ),
-            isError = email.isNotEmpty() && !isEmailValid,
+            isError = formState.emailError != null,
             supportingText = {
-                if (email.isNotEmpty() && !isEmailValid) {
-                    Text("Please enter a valid email address")
+                if (formState.emailError != null) {
+                    Text(formState.emailError!!)
                 }
             },
             modifier = Modifier
@@ -122,11 +125,8 @@ fun SignInScreen(
 
         // Password Field
         OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                errorMessage = ""
-            },
+            value = formState.password,
+            onValueChange = { authViewModel.updateSignInPassword(it) },
             label = { Text("Password") },
             leadingIcon = {
                 Icon(
@@ -148,19 +148,12 @@ fun SignInScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = {
-                    focusManager.clearFocus()
-                    if (isFormValid) {
-                        isLoading = true
-                        // Simulate sign in
-                        onSignInSuccess()
-                    }
-                }
+                onDone = { focusManager.clearFocus() }
             ),
-            isError = password.isNotEmpty() && !isPasswordValid,
+            isError = formState.passwordError != null,
             supportingText = {
-                if (password.isNotEmpty() && !isPasswordValid) {
-                    Text("Password must be at least 6 characters")
+                if (formState.passwordError != null) {
+                    Text(formState.passwordError!!)
                 }
             },
             modifier = Modifier
@@ -170,7 +163,7 @@ fun SignInScreen(
         )
 
         // Error Message
-        if (errorMessage.isNotEmpty()) {
+        if (authState is AuthState.Error) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -180,7 +173,7 @@ fun SignInScreen(
                 )
             ) {
                 Text(
-                    text = errorMessage,
+                    text = (authState as AuthState.Error).message,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     modifier = Modifier.padding(16.dp),
                     textAlign = TextAlign.Center
@@ -192,22 +185,14 @@ fun SignInScreen(
 
         // Sign In Button
         Button(
-            onClick = {
-                if (isFormValid) {
-                    isLoading = true
-                    // Simulate sign in process
-                    onSignInSuccess()
-                } else {
-                    errorMessage = "Please fill in all fields correctly"
-                }
-            },
-            enabled = !isLoading,
+            onClick = { authViewModel.signIn() },
+            enabled = formState.isFormValid && authState !is AuthState.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            if (isLoading) {
+            if (authState is AuthState.Loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     color = MaterialTheme.colorScheme.onPrimary
@@ -220,25 +205,6 @@ fun SignInScreen(
                 )
             }
         }
-
-        // Divider
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(vertical = 24.dp),
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            HorizontalDivider(modifier = Modifier.weight(1f))
-//            Text(
-//                text = "OR",
-//                modifier = Modifier.padding(horizontal = 16.dp),
-//                color = MaterialTheme.colorScheme.onSurfaceVariant,
-//                style = MaterialTheme.typography.bodySmall
-//            )
-//            HorizontalDivider(modifier = Modifier.weight(1f))
-//        }
-
-//        ConnectWithGoogleButton(onSignInSuccess)
 
         Spacer(modifier = Modifier.height(32.dp))
 

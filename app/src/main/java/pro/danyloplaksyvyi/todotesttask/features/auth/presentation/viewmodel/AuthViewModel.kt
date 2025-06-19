@@ -5,31 +5,26 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.repository.AuthRepository
-import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.AuthRepository
 
 import kotlinx.coroutines.flow.asStateFlow
-
-data class SignUpFormState(
-    val fullName: String = "",
-    val fullNameError: String? = null,
-    val email: String = "",
-    val emailError: String? = null,
-    val password: String = "",
-    val passwordError: String? = null,
-    val confirmPassword: String = "",
-    val confirmPasswordError: String? = null,
-    val acceptTerms: Boolean = false,
-    val acceptTermsError: String? = null,
-    val isFormValid: Boolean = false
-)
+import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.AuthState
+import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.SignInFormState
+import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.SignUpFormState
+import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.usecase.SignInUseCase
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.usecase.SignUpUseCase
 
 class AuthViewModel(
-    private val authRepository: AuthRepository // Injected via Koin, handles auth operations
+    private val signInUseCase: SignInUseCase,
+    private val signUpUseCase: SignUpUseCase
 ) : ViewModel() {
 
     private val _signUpFormState = MutableStateFlow(SignUpFormState())
     val signUpFormState: StateFlow<SignUpFormState> = _signUpFormState.asStateFlow()
+
+    private val _signInFormState = MutableStateFlow(SignInFormState())
+    val signInFormState: StateFlow<SignInFormState> = _signInFormState.asStateFlow()
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
@@ -42,10 +37,10 @@ class AuthViewModel(
             fullName = fullName,
             fullNameError = error
         )
-        validateForm()
+        validateSignUpForm()
     }
 
-    fun updateEmail(email: String) {
+    fun updateSignUpEmail(email: String) {
         val error = if (email.isNotEmpty() && !(email.contains("@") && email.contains("."))) {
             "Please enter a valid email address"
         } else null
@@ -53,10 +48,21 @@ class AuthViewModel(
             email = email,
             emailError = error
         )
-        validateForm()
+        validateSignUpForm()
     }
 
-    fun updatePassword(password: String) {
+    fun updateSignInEmail(email: String) {
+        val error = if (email.isNotEmpty() && !(email.contains("@") && email.contains("."))) {
+            "Please enter a valid email address"
+        } else null
+        _signInFormState.value = _signInFormState.value.copy(
+            email = email,
+            emailError = error
+        )
+        validateSignInForm()
+    }
+
+    fun updateSignUpPassword(password: String) {
         val error = if (password.isNotEmpty() && password.length < 6) {
             "Password must be at least 6 characters"
         } else null
@@ -64,38 +70,38 @@ class AuthViewModel(
             password = password,
             passwordError = error
         )
-        validateForm()
+        validateSignUpForm()
+    }
+
+    fun updateSignInPassword(password: String) {
+        val error = if (password.isNotEmpty() && password.length < 6) {
+            "Password must be at least 6 characters"
+        } else null
+        _signInFormState.value = _signInFormState.value.copy(
+            password = password,
+            passwordError = error
+        )
+        validateSignInForm()
     }
 
     fun updateConfirmPassword(confirmPassword: String) {
-        val error = if (confirmPassword.isNotEmpty() && confirmPassword != _signUpFormState.value.password) {
-            "Passwords do not match"
-        } else null
+        val error =
+            if (confirmPassword.isNotEmpty() && confirmPassword != _signUpFormState.value.password) {
+                "Passwords do not match"
+            } else null
         _signUpFormState.value = _signUpFormState.value.copy(
             confirmPassword = confirmPassword,
             confirmPasswordError = error
         )
-        validateForm()
+        validateSignUpForm()
     }
 
-    fun updateAcceptTerms(accept: Boolean) {
-        val error = if (!accept && _signUpFormState.value.acceptTerms) {
-            "Please accept the terms and conditions"
-        } else null
-        _signUpFormState.value = _signUpFormState.value.copy(
-            acceptTerms = accept,
-            acceptTermsError = error
-        )
-        validateForm()
-    }
-
-    private fun validateForm() {
+    private fun validateSignUpForm() {
         val state = _signUpFormState.value
         val isValid = state.fullNameError == null &&
                 state.emailError == null &&
                 state.passwordError == null &&
                 state.confirmPasswordError == null &&
-                state.acceptTerms &&
                 state.fullName.isNotEmpty() &&
                 state.email.isNotEmpty() &&
                 state.password.isNotEmpty() &&
@@ -103,25 +109,52 @@ class AuthViewModel(
         _signUpFormState.value = state.copy(isFormValid = isValid)
     }
 
+    private fun validateSignInForm() {
+        val state = _signInFormState.value
+        val isValid = state.emailError == null &&
+                state.passwordError == null &&
+                state.email.isNotEmpty() &&
+                state.password.isNotEmpty()
+        _signInFormState.value = state.copy(isFormValid = isValid)
+    }
+
     fun signUp() {
         val state = _signUpFormState.value
         if (state.isFormValid) {
             viewModelScope.launch {
                 _authState.value = AuthState.Loading
-                // Simulate or replace with actual repository call
-                val result = authRepository.signUpWithEmailAndPassword(state.email, state.password)
+                val result = signUpUseCase(state.email, state.password)
                 _authState.value = when {
-                    result.isSuccess -> AuthState.SignedIn(result.getOrNull() ?: User("dummy_id", "my_email@gmail.com"))
+                    result.isSuccess -> AuthState.SignedIn(
+                        result.getOrNull() ?: User(
+                            "dummy_id",
+                            "myemail@gmail.com"
+                        )
+                    )
+
                     else -> AuthState.Error(result.exceptionOrNull()?.message ?: "Sign up failed")
                 }
             }
         }
     }
-}
 
-sealed class AuthState {
-    object Idle : AuthState()
-    object Loading : AuthState()
-    data class SignedIn(val user: User) : AuthState()
-    data class Error(val message: String) : AuthState()
+    fun signIn() {
+        val state = _signInFormState.value
+        if (state.isFormValid) {
+            viewModelScope.launch {
+                _authState.value = AuthState.Loading
+                val result = signInUseCase(state.email, state.password)
+                _authState.value = when {
+                    result.isSuccess -> AuthState.SignedIn(
+                        result.getOrNull() ?: User(
+                            "dummy_id",
+                            "myemail@gmail.com"
+                        )
+                    )
+
+                    else -> AuthState.Error(result.exceptionOrNull()?.message ?: "Sign in failed")
+                }
+            }
+        }
+    }
 }

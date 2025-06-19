@@ -1,6 +1,6 @@
-package pro.danyloplaksyvyi.todotesttask.features.auth.data.repository
+package pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository
 
-import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
 
 
 interface AuthRepository {
