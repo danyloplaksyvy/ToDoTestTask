@@ -3,11 +3,11 @@ package pro.danyloplaksyvyi.todotesttask.features.auth.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.AuthRepository
-
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.AuthState
 import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.SignInFormState
 import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.SignUpFormState
@@ -25,6 +25,10 @@ class AuthViewModel(
 
     private val _signInFormState = MutableStateFlow(SignInFormState())
     val signInFormState: StateFlow<SignInFormState> = _signInFormState.asStateFlow()
+
+    // Expose current user state from repository
+    val currentUser: StateFlow<User?> = signInUseCase.authRepository.getCurrentUser()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
@@ -157,4 +161,6 @@ class AuthViewModel(
             }
         }
     }
+
+
 }

@@ -46,16 +46,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.koin.androidx.compose.koinViewModel
 import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.AuthState
 import pro.danyloplaksyvyi.todotesttask.features.auth.presentation.viewmodel.AuthViewModel
 
 @Composable
 fun SignInScreen(
+    authViewModel: AuthViewModel,
     onSignInSuccess: () -> Unit,
     onSignUpNavigate: () -> Unit
 ) {
-    val authViewModel: AuthViewModel = koinViewModel()
     val formState by authViewModel.signInFormState.collectAsState()
     val authState by authViewModel.authState.collectAsState()
 

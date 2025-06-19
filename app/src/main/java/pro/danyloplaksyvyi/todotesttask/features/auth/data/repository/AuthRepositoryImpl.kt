@@ -1,6 +1,9 @@
 package pro.danyloplaksyvyi.todotesttask.features.auth.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
 import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.AuthRepository
@@ -42,8 +45,11 @@ class AuthRepositoryImpl : AuthRepository {
         auth.signOut()
     }
 
-    override fun getCurrentUser(): User? {
-        val firebaseUser = auth.currentUser
-        return firebaseUser?.let { User(uid = it.uid, email = it.email ?: "") }
+    override fun getCurrentUser(): Flow<User?> = callbackFlow {
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            trySend(auth.currentUser?.let { User(it.uid, it.email ?: "") })
+        }
+        FirebaseAuth.getInstance().addAuthStateListener(listener)
+        awaitClose { FirebaseAuth.getInstance().removeAuthStateListener(listener) }
     }
 }
