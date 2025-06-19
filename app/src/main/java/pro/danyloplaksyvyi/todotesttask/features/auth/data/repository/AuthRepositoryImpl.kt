@@ -5,7 +5,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.model.User
 import pro.danyloplaksyvyi.todotesttask.features.auth.domain.repository.AuthRepository
 
 class AuthRepositoryImpl : AuthRepository {

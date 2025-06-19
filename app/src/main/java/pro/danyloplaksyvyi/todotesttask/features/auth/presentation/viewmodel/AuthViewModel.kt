@@ -8,10 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.AuthState
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.SignInFormState
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.SignUpFormState
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.User
+import pro.danyloplaksyvyi.todotesttask.features.auth.domain.model.User
 import pro.danyloplaksyvyi.todotesttask.features.auth.domain.usecase.SignInUseCase
 import pro.danyloplaksyvyi.todotesttask.features.auth.domain.usecase.SignUpUseCase
 

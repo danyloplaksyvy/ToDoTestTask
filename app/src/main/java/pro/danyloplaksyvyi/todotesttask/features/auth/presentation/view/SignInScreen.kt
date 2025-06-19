@@ -46,7 +46,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import pro.danyloplaksyvyi.todotesttask.features.auth.data.model.AuthState
+import pro.danyloplaksyvyi.todotesttask.features.auth.presentation.viewmodel.AuthState
 import pro.danyloplaksyvyi.todotesttask.features.auth.presentation.viewmodel.AuthViewModel
 
 @Composable
