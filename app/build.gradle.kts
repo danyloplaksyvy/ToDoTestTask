@@ -65,6 +65,14 @@ dependencies {
     // Navigation for Compose
     implementation(libs.androidx.navigation.compose)
 
+    // Material Icons Extended
+    implementation(libs.androidx.material.icons.extended)
+
+    // Koin for DI
+    implementation(libs.koin.android)
+    implementation(libs.insert.koin.koin.core)
+    implementation(libs.koin.androidx.compose)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
