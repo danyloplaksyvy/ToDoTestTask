@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 import pro.danyloplaksyvyi.todotesttask.features.tasklist.domain.model.Task
 import pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.view.components.FilterChips
+import pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.view.components.StoredTasksSection
 import pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.view.components.TaskCard
 import pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.viewmodel.TaskFilter
 import pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.viewmodel.TaskViewModel
@@ -54,6 +55,21 @@ fun TaskListScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 actions = {
+                    // Clear Cache Button
+                    TextButton(
+                        onClick = { viewModel.clearCache() },
+                        enabled = !uiState.isClearingCache && uiState.storedTasks.isNotEmpty()
+                    ) {
+                        if (uiState.isClearingCache) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Clear Cache")
+                        }
+                    }
+
                     IconButton(onClick = { viewModel.retry() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -63,6 +79,19 @@ fun TaskListScreen(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            if (uiState.cacheMessage != null) {
+                Snackbar(
+                    action = {
+                        TextButton(onClick = { viewModel.dismissCacheMessage() }) {
+                            Text("Dismiss")
+                        }
+                    }
+                ) {
+                    Text(uiState.cacheMessage!!)
+                }
+            }
         }
     ) { paddingValues ->
         Column(
@@ -78,6 +107,12 @@ fun TaskListScreen(
                     modifier = Modifier.padding(16.dp)
                 )
             }
+
+            // Stored Tasks Section
+            StoredTasksSection(
+                storedTasks = uiState.storedTasks,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
 
             // Filter Chips
             if (uiState.tasks.isNotEmpty()) {
@@ -103,13 +138,38 @@ fun TaskListScreen(
                     EmptyFilterContent(filter = uiState.selectedFilter)
                 }
                 uiState.filteredTasks.isNotEmpty() -> {
-                    TaskList(tasks = uiState.filteredTasks)
+                    TaskList(
+                        tasks = uiState.filteredTasks,
+                        onTaskClick = viewModel::onTaskClicked
+                    )
                 }
             }
         }
     }
 }
 
+// List of Tasks with click logging
+@Composable
+private fun TaskList(
+    tasks: List<Task>,
+    onTaskClick: (Task) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp)
+    ) {
+        items(
+            items = tasks,
+            key = { task -> task.id }
+        ) { task ->
+            TaskCard(
+                task = task,
+                onTaskClick = onTaskClick
+            )
+        }
+    }
+}
+// Card for showing statistics
 @Composable
 private fun StatisticsCard(
     totalTasks: Int,
@@ -147,6 +207,7 @@ private fun StatisticsCard(
     }
 }
 
+// Item for showing in StatisticsCard
 @Composable
 private fun StatItem(
     label: String,
@@ -266,21 +327,6 @@ private fun EmptyFilterContent(filter: TaskFilter) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
-        }
-    }
-}
-
-@Composable
-private fun TaskList(tasks: List<Task>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp)
-    ) {
-        items(
-            items = tasks,
-            key = { task -> task.id }
-        ) { task ->
-            TaskCard(task = task)
         }
     }
 }
