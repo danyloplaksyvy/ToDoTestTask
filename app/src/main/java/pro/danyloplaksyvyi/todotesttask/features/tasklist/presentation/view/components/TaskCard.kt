@@ -1,5 +1,6 @@
 package pro.danyloplaksyvyi.todotesttask.features.tasklist.presentation.view.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,12 +19,14 @@ import pro.danyloplaksyvyi.todotesttask.features.tasklist.domain.model.Task
 @Composable
 fun TaskCard(
     task: Task,
+    onTaskClick: (Task) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { onTaskClick(task) }, // Add click handling
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
@@ -33,6 +36,7 @@ fun TaskCard(
                 MaterialTheme.colorScheme.surface
         )
     ) {
+        // Rest of the existing TaskCard content remains the same
         Row(
             modifier = Modifier
                 .fillMaxWidth()
